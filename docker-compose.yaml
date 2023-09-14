@@ -1,0 +1,8 @@
+services:
+  db:
+    image: redis:alpine
+    network_mode: "host"
+
+  shortener:
+    build: ./shortener/
+    network_mode: "host"
