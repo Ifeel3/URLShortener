@@ -19,12 +19,13 @@ backend/shortener
 Требования
 ------
 
-1.docker
-2.docker-compose
+- docker
+- docker-compose
 
 Запуск
 ------
 в первый раз:
-docker-compose up --build -d
+`docker-compose up --build -d`
+
 иначе:
-docker-compose up -d
+`docker-compose up -d`
