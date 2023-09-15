@@ -15,3 +15,16 @@ backend/shortener
 
 Данные можно хранить в любом понравившемся key-value хранилище (persistent).
 Например http://ssdb.io/docs/go/index.html.
+
+Требования
+------
+
+1.docker
+2.docker-compose
+
+Запуск
+------
+в первый раз:
+docker-compose up --build -d
+иначе:
+docker-compose up -d
