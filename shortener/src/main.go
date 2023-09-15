@@ -83,7 +83,7 @@ func Redirect(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Not Found"))
 		return
 	}
-	http.Redirect(w, r, url, http.StatusMovedPermanently)
+	http.Redirect(w, r, url, http.StatusFound)
 }
 
 var cache RedisWithCache
