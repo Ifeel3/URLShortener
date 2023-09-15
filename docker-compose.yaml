@@ -2,7 +2,11 @@ services:
   db:
     image: redis:alpine
     network_mode: "host"
+    restart: always
 
   shortener:
     build: ./shortener/
     network_mode: "host"
+    restart: always
+    depends_on:
+      - db

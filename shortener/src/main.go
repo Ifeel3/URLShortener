@@ -2,37 +2,42 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/redis/go-redis/v9"
 )
 
-func HandlerSet(w http.ResponseWriter, r *http.Request) {
-	splitted := strings.Split(r.RequestURI, "/")
-	if len(splitted) != 4 {
-		w.Write([]byte("Bad Request"))
+type Node struct {
+	url       string
+	redirects int
+}
+
+func NewNode(url string) Node {
+	return Node{url, 0}
+}
+
+func Mapping(w http.ResponseWriter, r *http.Request) {
+	tmp := r.URL.Query()
+	url := tmp["url"][0]
+	if url == "" {
+		w.Write([]byte("Bad Request\n"))
 	} else {
-		err := db.Set(context.TODO(), splitted[2], splitted[3], 0).Err()
-		if err != nil {
-			w.Write([]byte("Bad Request"))
-			return
-		}
-		w.Write([]byte("OK"))
+		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(url)))[:8]
+		db.Set(context.TODO(), hash, url, 0)
+		cache[hash] = NewNode(url)
 	}
 }
 
-func HandlerGet(w http.ResponseWriter, r *http.Request) {
-	splitted := strings.Split(r.RequestURI, "/")
-	if len(splitted) != 3 {
-		w.Write([]byte("Bad Request"))
-	} else {
-		response, _ := db.Get(context.TODO(), splitted[2]).Result()
-		w.Write([]byte(response))
-	}
+func Redirect(w http.ResponseWriter, r *http.Request) {
+	hash := r.RequestURI[3:len(r.RequestURI)]
+	w.Write([]byte(cache[hash].url))
+	cache[hash].redirects++
 }
 
 var db *redis.Client
+var cache map[string]Node
 
 func main() {
 	db = redis.NewClient(&redis.Options{
@@ -40,7 +45,8 @@ func main() {
 		Password: "",
 		DB:       0,
 	})
-	http.HandleFunc("/set/", HandlerSet)
-	http.HandleFunc("/get/", HandlerGet)
+	cache = make(map[string]Node, 100)
+	http.HandleFunc("/a/", Mapping)
+	http.HandleFunc("/s/", Redirect)
 	http.ListenAndServe(":8080", nil)
 }
